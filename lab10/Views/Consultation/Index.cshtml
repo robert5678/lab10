@@ -1,0 +1,152 @@
+﻿@model lab10.Models.ConsultationFormModel
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Реєстрація на консультацію</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #eef2f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: #ffffff;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #444;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+            input:focus, select:focus {
+                border-color: #5cb85c;
+                outline: none;
+                box-shadow: 0 0 5px rgba(92, 184, 92, 0.5);
+            }
+
+        button {
+            background-color: #5cb85c;
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+            button:hover {
+                background-color: #4cae4c;
+            }
+
+        .error {
+            color: #d9534f;
+            font-size: 0.875em;
+            margin-bottom: 10px;
+        }
+
+        .success {
+            color: #5cb85c;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="container">
+        <h1>Реєстрація на консультацію</h1>
+        <div id="messages"></div>
+        <form id="consultationForm">
+            <div>
+                <label>Ім'я та прізвище</label>
+                <input id="FullName" name="FullName" type="text" required />
+            </div>
+            <div>
+                <label>Email</label>
+                <input id="Email" name="Email" type="email" required />
+            </div>
+            <div>
+                <label>Дата консультації</label>
+                <input id="ConsultationDate" name="ConsultationDate" type="date" required />
+            </div>
+            <div>
+                <label>Продукт</label>
+                <select id="Product" name="Product" required>
+                    <option value="">Виберіть продукт</option>
+                    @foreach (var product in (IEnumerable<string>)ViewData["Products"])
+                    {
+                        <option value="@product">@product</option>
+                    }
+                </select>
+            </div>
+            <button type="submit">Зареєструватися</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#consultationForm").on("submit", function (event) {
+                event.preventDefault();
+
+                const formData = {
+                    FullName: $("#FullName").val(),
+                    Email: $("#Email").val(),
+                    ConsultationDate: $("#ConsultationDate").val(),
+                    Product: $("#Product").val()
+                };
+
+                $.ajax({
+                    url: "/Consultation/Index",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(formData),
+                    success: function (response) {
+                        $("#messages").html("");
+                        if (response.success) {
+                            $("#messages").html(`<p style="color: green;">${response.message}</p>`);
+                            $("#consultationForm")[0].reset();
+                        } else {
+                            if (response.errors) {
+                                response.errors.forEach(error => {
+                                    $("#messages").append(`<p class="error">${error}</p>`);
+                                });
+                            } else {
+                                $("#messages").html(`<p class="error">${response.message}</p>`);
+                            }
+                        }
+                    },
+                    error: function () {
+                        $("#messages").html(`<p class="error">Виникла помилка. Спробуйте пізніше.</p>`);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
